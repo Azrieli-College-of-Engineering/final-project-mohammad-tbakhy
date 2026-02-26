@@ -1,3 +1,4 @@
+markdown
 # 🛡️ OAuth 2.0 Vulnerability Lab: Open Redirect & CSRF
 
 ![Security Research](https://img.shields.io/badge/Security-Research-red)
@@ -52,24 +53,38 @@ To secure this implementation in `server-secure.js`, we implemented the followin
 
 ## 🚀 Installation & Setup
 
-1. **Clone the repo:** ```bash
+1. **Clone the repo:** bash
    git clone [https://github.com/MohammadTbakhy/OAuth-Vulnerability-Lab.git](https://github.com/MohammadTbakhy/OAuth-Vulnerability-Lab.git)
 
 
- 2.  Install dependencies: ```bash
-npm install
 
- 3. Configure Environment: Create a .env file based on .env.example and add your GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET.
+2. **Install dependencies:** 
+```
+bash npm install
+```
 
-🎮 Running the Lab
-To test the Exploit (Vulnerable Version):
 
-Bash
+3. **Configure Environment:** Create a `.env` file based on `.env.example` and add your `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`.
+
+---
+
+## 🎮 Running the Lab
+
+**To test the Exploit (Vulnerable Version):**
+
+```bash
 node server-vulnerable.js
-Access http://localhost:3000 and try manipulating the returnTo parameter.
 
-To test the Defense (Secure Version):
+```
 
-Bash
+*Access `http://localhost:3000` and try manipulating the `returnTo` parameter.*
+
+**To test the Defense (Secure Version):**
+
+```bash
 node server-secure.js
-Access http://localhost:3000. The server will now block malicious redirects with a 403 Forbidden Security Alert.
+
+```
+
+*Access `http://localhost:3000`. The server will now block malicious redirects with a `403 Forbidden` Security Alert.*
+
