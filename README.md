@@ -1,56 +1,75 @@
-# 🛡️ OAuth 2.0 Vulnerability Lab: Open Redirect & Broken Logic
+# 🛡️ OAuth 2.0 Vulnerability Lab: Open Redirect & CSRF
 
 ![Security Research](https://img.shields.io/badge/Security-Research-red)
 ![Node.js](https://img.shields.io/badge/Node.js-v18+-green)
 ![GCP](https://img.shields.io/badge/Google_Cloud-OAuth_2.0-blue)
+![Mitigation Applied](https://img.shields.io/badge/Status-Patched-success)
 
 ## 📌 Project Overview
-This project is an educational security lab designed to demonstrate **Broken Logic** vulnerabilities within the "Login with Google" (OAuth 2.0) flow. We focus on showing how a simple programming oversight in handling redirection can lead to full account takeovers via **Open Redirect** exploits.
+This project is an educational security lab designed to demonstrate **Broken Logic** vulnerabilities within the "Login with Google" (OAuth 2.0) flow. We focus on showing how a simple programming oversight in handling redirection and the `state` parameter can lead to **Open Redirect** exploits and **OAuth CSRF** attacks, followed by implementing a robust, cryptographically secure mitigation.
 
-## ⚠️ Mandatory Security Warning
-This application is **Vulnerable by Design**. It has been intentionally left open to Open Redirect attacks for research and training purposes. **Do not use this code in a production environment.**
+## ⚠️ Security Warning
+This repository contains two versions of the server:
+1. `server-vulnerable.js`: **Vulnerable by Design**. Left open to attacks for research and PoC purposes.
+2. `server-secure.js`: **Fully Patched**. Implements strict validation and in-memory state management.
 
 ---
 
 ## 🏗️ Team Roles & Contributions
-* **The Builder (Mohammad):** Responsible for environment setup, building the Express.js backend, and configuring the Google Cloud Platform (GCP) integration.
-* **The Hacker:** Responsible for intercepting requests using Burp Suite and exploiting the Open Redirect to capture session data.
-* **The Architect:** Responsible for the theoretical analysis, documenting the vulnerability, and providing secure coding solutions.
+* **The Builder:** Responsible for environment setup, building the initial Express.js backend, designing the UI, and configuring the Google Cloud Platform (GCP) integration.
+* **The Hacker:** Responsible for intercepting requests using Burp Suite, identifying the logical flaws, and exploiting the Open Redirect/CSRF to hijack the authentication flow.
+* **The Architect:** Responsible for the theoretical analysis, auditing the vulnerable code, and engineering the final secure patch using cryptographic nonces and server-side memory (`Map`).
 
 ---
 
 ## 🛠️ Technical Stack
 * **Backend:** Node.js & Express.js.
 * **Authentication:** Passport.js with `passport-google-oauth20` strategy.
-* **Infrastructure:** Google Cloud Console for OAuth Client ID/Secret management.
-* **IDE:** Antigravity (AI-Powered Code Editor).
+* **Security Modules:** Node.js native `crypto` module.
+* **Infrastructure:** Google Cloud Console.
 
 ---
 
-## 🔍 The Vulnerability: Open Redirect
-The core flaw is located in the `server.js` callback logic. The server accepts a `returnTo` query parameter and performs a redirect immediately after a successful Google login without validating the destination against a whitelist.
+## 🔍 The Vulnerabilities
 
+### 1. Open Redirect
+The server initially accepts a `returnTo` query parameter and performs a redirect immediately after a successful Google login without validating the destination against a whitelist.
+* **Attack Scenario:** An attacker crafts a link `http://localhost:3000/auth/google?returnTo=https://attacker-site.com`. The victim logs in, and the server blindly redirects them to the attacker's domain, leaking session data.
 
+### 2. OAuth CSRF (State Manipulation)
+The initial code misused the OAuth `state` parameter by passing plaintext routing data inside it, rather than using a randomized, unguessable token, making the flow susceptible to Cross-Site Request Forgery.
 
-### Attack Scenario:
-1. An attacker crafts a malicious link: 
-   `http://localhost:3000/auth/google?returnTo=https://attacker-site.com`
-2. The victim clicks the link and logs in through the official Google prompt.
-3. Upon success, our server blindly redirects the victim to `attacker-site.com` along with sensitive session fragments.
+---
+
+## 🛡️ The Architect's Mitigation (The Patch)
+To secure this implementation in `server-secure.js`, we implemented the following enterprise-grade defenses:
+1. **Strict Path Validation:** Enforced relative path checking (`!returnTo.startsWith('/')`) to instantly block external Open Redirects.
+2. **Cryptographic Nonce Generation:** Utilized `crypto.randomBytes(20)` to generate a secure, unguessable `state` token for every login attempt.
+3. **In-Memory State Management:** Replaced unreliable cookies with a server-side `Map()` to bind the secure token to the intended route.
+4. **Replay Attack Prevention:** The token is strictly single-use and is immediately deleted (`validStates.delete`) upon successful validation.
 
 ---
 
 ## 🚀 Installation & Setup
-1. **Clone the repo:** `git clone https://github.com/MohammadTbakhy/OAuth-Vulnerability-Lab.git`
-2. **Install dependencies:** `npm install`.
-3. **Configure Environment:** Create a `.env` file and add your `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` obtained from GCP.
-4. **Run the Server:** `node server.js`.
-5. **Access the Lab:** Open `http://localhost:3000`.
 
----
+1. **Clone the repo:** ```bash
+   git clone [https://github.com/MohammadTbakhy/OAuth-Vulnerability-Lab.git](https://github.com/MohammadTbakhy/OAuth-Vulnerability-Lab.git)
 
-## 🛡️ Mitigation Strategies
-To secure this implementation, we recommend:
-1. **Static Whitelisting:** Only allow redirects to pre-defined, trusted URLs.
-2. **State Parameter:** Always implement and validate the `state` parameter to prevent CSRF and redirect manipulation.
-3. **Secret Protection:** Utilizing GitHub's **Push Protection** (which successfully flagged our initial attempts to upload secrets!) to prevent credential leaks.
+
+ 2.  Install dependencies: ```bash
+npm install
+
+ 3. Configure Environment: Create a .env file based on .env.example and add your GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET.
+
+🎮 Running the Lab
+To test the Exploit (Vulnerable Version):
+
+Bash
+node server-vulnerable.js
+Access http://localhost:3000 and try manipulating the returnTo parameter.
+
+To test the Defense (Secure Version):
+
+Bash
+node server-secure.js
+Access http://localhost:3000. The server will now block malicious redirects with a 403 Forbidden Security Alert.
