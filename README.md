@@ -73,7 +73,7 @@ bash npm install
 **To test the Exploit (Vulnerable Version):**
 
 ```bash
-node server-vulnerable.js
+node server.js 
 
 ```
 
