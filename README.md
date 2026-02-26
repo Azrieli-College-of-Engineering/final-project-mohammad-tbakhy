@@ -11,7 +11,7 @@ This project is an educational security lab designed to demonstrate **Broken Log
 
 ## ⚠️ Security Warning
 This repository contains two versions of the server:
-1. `server-vulnerable.js`: **Vulnerable by Design**. Left open to attacks for research and PoC purposes.
+1. `server.js`: **Vulnerable by Design**. Left open to attacks for research and PoC purposes.
 2. `server-secure.js`: **Fully Patched**. Implements strict validation and in-memory state management.
 
 ---
